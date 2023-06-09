@@ -1,2 +1,4 @@
 *.exe
 /tools_env/
+/build/
+/__pycache__/
