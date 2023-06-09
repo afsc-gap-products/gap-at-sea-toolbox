@@ -30,7 +30,7 @@ class ParentWidget(QMainWindow):
         self.setCentralWidget(self.central_widget)
 
         self.layout = QVBoxLayout()
-        self.title_label = QLabel("File Conversion Tools:")
+        self.title_label = QLabel("Tools:")
         self.search_box = QLineEdit()
         self.list_widget = QListWidget()
         self.submit_button = QPushButton("Submit")

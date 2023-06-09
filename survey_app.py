@@ -1,21 +1,25 @@
 import sys
+import pandas as pd
+import os
 # import sqlite3 Reminder that a future option could be to read-in a SQLite database...
-from PyQt6.QtWidgets import QApplication, QMainWindow, QTableView, QHeaderView, QAbstractItemView, QLineEdit, QToolBar, QComboBox, QSlider, QWidget, QHBoxLayout, QVBoxLayout
+from PyQt6.QtWidgets import QApplication, QMainWindow, QTableView, QHeaderView, QAbstractItemView, QLineEdit, QToolBar, QComboBox, QSlider, QWidget, QHBoxLayout, QVBoxLayout, QLabel
 from PyQt6.QtGui import QStandardItemModel, QStandardItem, QDesktopServices, QFont
 from PyQt6.QtCore import Qt, QUrl, QModelIndex
+
+
 
 
 class surveyApp(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("File Explorer")
+        self.setWindowTitle("Survey App Resources")
         self.resize(800, 600)
 
         self.model = QStandardItemModel()
-        self.model.setColumnCount(4)
+        self.model.setColumnCount(3)
         self.model.setHorizontalHeaderLabels(
-            ["Name", "Description", "Location", "Last Update"])
+            ["Name", "Description", "Location"])
 
         self.table_view = QTableView(self)
         self.table_view.setModel(self.model)
@@ -25,7 +29,7 @@ class surveyApp(QMainWindow):
             QTableView.SelectionBehavior.SelectRows)
         self.table_view.setSortingEnabled(True)
         self.table_view.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.Interactive)
+            QHeaderView.ResizeMode.Fixed)
         self.table_view.horizontalHeader().setStretchLastSection(True)
 
         toolbar = QToolBar(self)
@@ -42,6 +46,7 @@ class surveyApp(QMainWindow):
         self.search_mode_combo.addItem("Last Update")
         toolbar.addWidget(self.search_mode_combo)
 
+        font_size_slider_label = QLabel('Font Size: ')
         font_size_slider = QSlider(Qt.Orientation.Horizontal)
         font_size_slider.setMinimum(10)
         font_size_slider.setMaximum(30)
@@ -50,14 +55,24 @@ class surveyApp(QMainWindow):
         font_size_slider.setTickPosition(QSlider.TickPosition.TicksBelow)
         font_size_slider.valueChanged.connect(self.update_font_size)
 
+        self.filepath_survey_app_label = QLabel('Survey App Directory: ')
+        self.filepath_survey_app = 'G:/RACE_Survey_App'
+        self.survey_app_bar = QLineEdit()
+        self.survey_app_bar.setText('G:/RACE_Survey_App')
+        self.survey_app_bar.textChanged.connect(self.update_filepath)
+    
         bottom_right_layout = QHBoxLayout()
+        bottom_right_layout.addWidget(self.filepath_survey_app_label) 
+        bottom_right_layout.addWidget(self.survey_app_bar)
         bottom_right_layout.addStretch()
+        bottom_right_layout.addWidget(font_size_slider_label)
         bottom_right_layout.addWidget(font_size_slider)
 
         main_layout = QVBoxLayout()
         main_layout.addWidget(toolbar)
         main_layout.addWidget(self.table_view)
         main_layout.addLayout(bottom_right_layout)
+        # main_layout.addLayout(self.survey_app_bar)
 
         central_widget = QWidget()
         central_widget.setLayout(main_layout)
@@ -72,87 +87,46 @@ class surveyApp(QMainWindow):
 
     def setup_table(self):
         self.table_view.horizontalHeader().setSectionResizeMode(
-            QHeaderView.ResizeMode.Stretch)
-        self.table_view.horizontalHeader().setSectionResizeMode(
             QHeaderView.ResizeMode.Interactive)
-        self.table_view.horizontalHeader().setStretchLastSection(False)
-        self.table_view.horizontalHeader().setSectionResizeMode(
-            3, QHeaderView.ResizeMode.Fixed)
-        self.table_view.setColumnWidth(3, 150)
-
-    def populate_list(self):
-        sample_data = [
-            ("Folder 1", "Folder 1 Description", "C:/Users", "2023-05-20"),
-            ("File 1", "File 1 Description", "C:/Users/example.txt", "2023-05-21"),
-            ("Folder 2", "Folder 2 Description", "C:/Program Files", "2023-05-22"),
-            ("File 2", "File 2 Description",
-             "C:/Program Files/example.exe", "2023-05-23")
-        ]
-
-        for name, description, location, last_update in sample_data:
-            name_item = QStandardItem(name)
-            description_item = QStandardItem(description)
-            location_item = QStandardItem(location)
-            last_update_item = QStandardItem(last_update)
-
-            self.model.appendRow(
-                [name_item, description_item, location_item, last_update_item])
+        self.table_view.setColumnWidth(0, 300)
+        self.table_view.setColumnWidth(1, 300)
+        self.table_view.setColumnWidth(2, 200)
 
     # Future method to read data in from a csv file
-    # def populate_list(self):
-    #     with open('data.csv', 'r', newline='') as file:
-    #         reader = csv.reader(file)
-    #         header = next(reader)  # Read the header row
-    #         self.model.setHorizontalHeaderLabels(header)
+    def populate_list(self):
+        data = pd.read_csv('./inst/survey_app_data_gaptools_minimal.csv', usecols=['widget_title', 'widget_description', 'url_loc'])
 
-    #         for row in reader:
-    #             name = row[0]
-    #             description = row[1]
-    #             location = row[2]
-    #             last_update = row[3]
+        # Define the custom column names
+        column_names = ['Name', 'Description', 'Location']
+        self.model.setHorizontalHeaderLabels(column_names)
 
-    #             name_item = QStandardItem(name)
-    #             description_item = QStandardItem(description)
-    #             location_item = QStandardItem(location)
-    #             last_update_item = QStandardItem(last_update)
+        for index, row in data.iterrows():
+            name = row['widget_title']
+            description = row['widget_description']
+            location = row['url_loc']
 
-    #             self.model.appendRow(
-    #                 [name_item, description_item, location_item, last_update_item])
+            name_item = QStandardItem(name)
+            description_item = QStandardItem(str(description))
+            location_item = QStandardItem(location)
 
-    # Or read from a SQLite database
-    # def populate_list(self):
-    #     connection = sqlite3.connect('database.db')
-    #     cursor = connection.cursor()
-
-    #     cursor.execute("SELECT name, description, location, last_update FROM items")
-    #     rows = cursor.fetchall()
-
-    #     for row in rows:
-    #         name = row[0]
-    #         description = row[1]
-    #         location = row[2]
-    #         last_update = row[3]
-
-    #         name_item = QStandardItem(name)
-    #         description_item = QStandardItem(description)
-    #         location_item = QStandardItem(location)
-    #         last_update_item = QStandardItem(last_update)
-
-    #         self.model.appendRow([name_item, description_item, location_item, last_update_item])
-
-    #     cursor.close()
-    #     connection.close()
+            self.model.appendRow([name_item, description_item, location_item])
 
     def open_item(self, index: QModelIndex):
-        item = self.model.itemFromIndex(index)
-        location = item.text()
+        row = index.row()  # Get the row index of the double-clicked item
+        column = 2  # Assuming the desired column index is 3
 
-        # Open the item in File Explorer if it's a folder
-        if QDesktopServices.openUrl(QUrl.fromLocalFile(location)):
-            return
+        item = self.model.item(row, column)  # Retrieve the item from the specified row and column
+
+        if item is None:
+            return  # Handle the case when the item does not exist
+
+        location = item.text()  # Get the path from the item's text
 
         # Open the file using the default program for the file type
-        QDesktopServices.openUrl(QUrl.fromLocalFile(location))
+        QDesktopServices.openUrl(QUrl.fromLocalFile(os.path.join(self.filepath_survey_app, location)))
+
+    def update_filepath(self):
+        self.filepath_survey_app = self.survey_app_bar.text()
 
     def filter_data(self, text):
         self.table_view.reset()
