@@ -50,7 +50,7 @@ class CtdToBtdWidget(QWidget):
 
         self.label_bat = QLabel("Batch file (default path pre-filled)")
         self.line_bat = QLineEdit()
-        self.line_psa.setText("C:/CTD/assets/getdata.bat")
+        self.line_bat.setText("C:/CTD/assets/getdata.bat")
         self.button_bat = QPushButton("Browse")
 
         self.submit_button = QPushButton("Convert")
@@ -133,31 +133,32 @@ class CtdToBtdWidget(QWidget):
             QMessageBox.information(
                 self, "File Created", "{} created!".format(path), QMessageBox.StandardButton.Ok)
 
-    def extract_value(filepath, search_string):
-        with open(filepath, 'r') as file:
-            for line in file:
-                if search_string in line:
-                    first_value = line.split('=')[
-                        1].strip().strip().split(' [')[0].strip()
-                    return first_value
-        raise ValueError(["{} not found in the file".format(search_string)])
-
-    def open_text_file(filepath):
-        with open(filepath, 'r') as file:
-            # Find the line number that contains '*END*'
-            end_line = next((i for i, line in enumerate(file)
-                             if '*END*' in line), None)
-
-        if end_line is not None:
-            # Read the file, skipping rows up to '*END*'
-            df = pd.read_csv(filepath, sep='\s+',
-                             skiprows=end_line + 1, header=None)
-        else:
-            # If '*END*' is not found, read the entire file
-            df = pd.read_csv(filepath, sep='\s+', header=None)
-        return df
-
     def submit_files(self):
+
+        def extract_value(filepath, search_string):
+            with open(filepath, 'r') as file:
+                for line in file:
+                    if search_string in line:
+                        first_value = line.split('=')[
+                            1].strip().strip().split(' [')[0].strip()
+                        return first_value
+            raise ValueError(["{} not found in the file".format(search_string)])
+
+        def open_text_file(filepath):
+            with open(filepath, 'r') as file:
+                # Find the line number that contains '*END*'
+                end_line = next((i for i, line in enumerate(file)
+                                if '*END*' in line), None)
+
+            if end_line is not None:
+                # Read the file, skipping rows up to '*END*'
+                df = pd.read_csv(filepath, sep='\s+',
+                                skiprows=end_line + 1, header=None)
+            else:
+                # If '*END*' is not found, read the entire file
+                df = pd.read_csv(filepath, sep='\s+', header=None)
+            return df
+
         filepath_hex = self.line_hex.text()
         filepath_xmlcon = self.line_xmlcon.text()
         filepath_output_dir = self.line_output_dir.text()
