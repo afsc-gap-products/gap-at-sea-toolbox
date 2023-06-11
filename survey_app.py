@@ -43,7 +43,7 @@ class surveyApp(QMainWindow):
         self.search_mode_combo.addItem("Name")
         self.search_mode_combo.addItem("Description")
         self.search_mode_combo.addItem("Location")
-        self.search_mode_combo.addItem("Last Update")
+        # self.search_mode_combo.addItem("Last Update")
         toolbar.addWidget(self.search_mode_combo)
 
         font_size_slider_label = QLabel('Font Size: ')
@@ -56,9 +56,9 @@ class surveyApp(QMainWindow):
         font_size_slider.valueChanged.connect(self.update_font_size)
 
         self.filepath_survey_app_label = QLabel('Survey App Directory: ')
-        self.filepath_survey_app = 'G:/RACE_Survey_App'
+        self.filepath_survey_app = 'C:/RACE_Survey_App'
         self.survey_app_bar = QLineEdit()
-        self.survey_app_bar.setText('G:/RACE_Survey_App')
+        self.survey_app_bar.setText('C:/RACE_Survey_App')
         self.survey_app_bar.textChanged.connect(self.update_filepath)
     
         bottom_right_layout = QHBoxLayout()
