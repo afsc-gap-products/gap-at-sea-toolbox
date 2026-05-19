@@ -8,7 +8,6 @@ import tkinter as tk
 from tkinter import filedialog, messagebox
 import xml.etree.ElementTree as ET
 
-# --- CALIBRATION & LOGIC (Kept as provided) ---
 def integer_to_temperature(t_int, A0, A1, A2, A3, Offset=0, **kwargs):
     par0, par1, par2, par3, par4, par5 = 524288, 1.6e7, 2.9e9, 1.024e8, 2.048e4, 2e5
     t_v = (t_int - par0) / par1
@@ -93,14 +92,10 @@ def process_ctd(hex_file, xml_file, btd_output_path, lat, vessel, cruise, haul, 
     btd_out.to_csv(btd_output_path, index=False)
     return btd_output_path, bth_output_path
 
-
-# --- REFACTORED CTD GUI CLASS ---
-
 class CTDConverterGUI(tk.Frame):
     def __init__(self, parent):
         super().__init__(parent)
         
-        # UI Header Documentation Strings
         tk.Label(self, text="CTD to BTD/BTH Converter", font=('Arial', 12, 'bold')).pack(pady=10)
         tk.Label(self, text="Extracts data from SeaBird SBE19plus .hex and converts to BTD/BTH that can be loaded by Poseidon.", 
                  font=('Arial', 10, 'italic')).pack(pady=5)
@@ -136,7 +131,7 @@ class CTDConverterGUI(tk.Frame):
             wraplength=600,
             justify="left"
         )
-        # FIXED: Changed from .grid() to .pack() to maintain geometry manager consistency
+
         files_label.pack(anchor="w", pady=(0, 10))
 
         self.hex_path = tk.StringVar()
@@ -181,9 +176,7 @@ class CTDConverterGUI(tk.Frame):
             messagebox.showinfo("Success", f"Files created successfully.")
         except Exception as e:
             messagebox.showerror("Error", str(e))
-
-
-# --- MAIN PARENT WINDOW ---
+            
 
 class ParentWidget(tk.Tk):
     def __init__(self):

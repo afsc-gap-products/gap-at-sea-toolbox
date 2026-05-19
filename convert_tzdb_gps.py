@@ -8,8 +8,6 @@ from tkinter import filedialog, messagebox
 from tkcalendar import DateEntry
 import zoneinfo
 
-# --- CORE LOGIC FUNCTIONS (Kept as provided) ---
-
 def transform_3857_to_4326(x_3857, y_3857):
     """Converts EPSG:3857 (Pseudo-Mercator) to EPSG:4326 (WGS84)"""
     x_const = 20037508.34
@@ -66,9 +64,6 @@ def convert_tzdb_to_gps(path_tzdb, output_file, vessel, cruise, haul, start_dt, 
     output.to_csv(output_file, index=False, header=False, quoting=3, sep=",")
     return len(output)
 
-
-# --- REFACTORED GUI APPLICATION ---
-
 class TZDBConverterGUI(tk.Frame):
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -111,7 +106,6 @@ class TZDBConverterGUI(tk.Frame):
         time_frame = tk.LabelFrame(main_container, text=" Time Filtering (Alaska Time) ", font=('Arial', 10, 'bold'), padx=15, pady=10)
         time_frame.pack(fill="x", padx=10, pady=5)
 
-                # Description
         time_text = "Select the date/time range for the haul (OK to add time at the beginning/end)"
         self.lbl_time = tk.Label(time_frame, text=time_text, font=('Arial', 10, 'italic'), 
                                  fg="#333333", wraplength=500, justify="center")
@@ -209,7 +203,7 @@ class TZDBConverterGUI(tk.Frame):
 if __name__ == "__main__":
     root = tk.Tk()
     root.title("Data Engine Workspace")
-    root.geometry("600x700")  # Bumped height slightly to gracefully accommodate the extra frame split
+    root.geometry("600x700")
     app = TZDBConverterGUI(root)
     app.pack(fill="both", expand=True)
     root.mainloop()

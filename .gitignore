@@ -6,3 +6,5 @@ archive
 dist
 build
 *.spec
+gaptools_demo.zip
+gaptools_demo

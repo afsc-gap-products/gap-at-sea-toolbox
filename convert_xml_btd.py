@@ -10,7 +10,6 @@ import numpy as np
 import pandas as pd
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 
-
 class XMLToBTDConverterGUI(tk.Frame):  # Inherits from tk.Frame
 
     def __init__(self, parent, *args, **kwargs):
@@ -33,7 +32,6 @@ class XMLToBTDConverterGUI(tk.Frame):  # Inherits from tk.Frame
         )
         top_desc_label.pack(fill="x", padx=15, pady=(15, 5))
 
-        # CHANGED: ttk.LabelFrame -> tk.LabelFrame & padding -> padx/pady
         file_frame = tk.LabelFrame(self, text=" File Selection ", font=('Arial', 10, 'bold'), padx=10, pady=10)
         file_frame.pack(fill="x", padx=10, pady=5)
 
@@ -44,7 +42,6 @@ class XMLToBTDConverterGUI(tk.Frame):  # Inherits from tk.Frame
             side="right"
         )
 
-        # CHANGED: ttk.LabelFrame -> tk.LabelFrame & padding -> padx/pady
         meta_frame = tk.LabelFrame(self, text=" Metadata Inputs ", font=('Arial', 10, 'bold'), padx=10, pady=10)
         meta_frame.pack(fill="x", padx=10, pady=5)
 
@@ -76,7 +73,6 @@ class XMLToBTDConverterGUI(tk.Frame):  # Inherits from tk.Frame
 
         meta_frame.columnconfigure(1, weight=1)
 
-        # CHANGED: ttk.LabelFrame -> tk.LabelFrame & padding -> padx/pady
         filter_frame = tk.LabelFrame(self, text=" Window Filters ", font=('Arial', 10, 'bold'), padx=10, pady=10)
         filter_frame.pack(fill="x", padx=10, pady=5)
 

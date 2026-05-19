@@ -4,8 +4,6 @@ from datetime import datetime, timedelta
 import numpy as np
 import math
 
-# --- CORE ASTRONOMICAL LOGIC (Ported from R) ---
-
 def astrocalc_python(day, month, year, hour, timezone, lat, lon):
     """
     Python port of astrcalc4r. Calculates solar variables based on 
@@ -100,7 +98,6 @@ def format_decimal_to_time(decimal_hour, base_date, tz_offset):
     seconds = int(((decimal_hour % 1) * 60 % 1) * 60)
     
     # Construct timestamp in UTC, then shift by the offset used in calculation
-    # (Note: R code adds hour_offset to shift from GMT back to local)
     dt = datetime(base_date.year, base_date.month, base_date.day, hours, minutes, seconds)
     return dt.strftime("%Y-%m-%d %H:%M:%S")
 

@@ -13,7 +13,6 @@ class ParentWidget(tk.Tk):
         "GPS: Convert TimeZero DB to GPS": TZDBConverterGUI,
         "Sunrise/Sunset": SunriseSunsetGUI,
         "About": AboutWidget
-
     }
 
     def __init__(self):
@@ -30,7 +29,7 @@ class ParentWidget(tk.Tk):
         self.sidebar = tk.Frame(self.paned_window, width=250, padx=10, pady=10)
         self.paned_window.add(self.sidebar)
 
-        self.title_label = tk.Label(self.sidebar, text="Available Tools", font=("Arial", 11, "bold"))
+        self.title_label = tk.Label(self.sidebar, text="Tools:", font=("Arial", 11, "bold"))
         self.title_label.pack(pady=(0, 10), anchor="w")
 
         # Listbox for navigation
@@ -71,7 +70,6 @@ class ParentWidget(tk.Tk):
             except Exception as e:
                 messagebox.showerror("Error", f"Could not load {widget_name}: {e}")
         else:
-            # Placeholder for unlinked tools
             lbl = tk.Label(self.workspace, text=f"{widget_name}\n(Not yet implemented)", 
                            bg="white", font=("Arial", 14))
             lbl.pack(expand=True)
