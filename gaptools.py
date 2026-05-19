@@ -1,84 +1,81 @@
-import sys
-from PyQt6.QtCore import Qt
-from PyQt6.QtWidgets import (
-    QApplication,
-    QMainWindow,
-    QWidget,
-    QLabel,
-    QLineEdit,
-    QListWidget,
-    QPushButton,
-    QVBoxLayout)
-from ctd_to_btd import CtdToBtdWidget, ChildWidget
-from survey_app import surveyApp
+import tkinter as tk
+from tkinter import messagebox
+from convert_tzdb_gps import TZDBConverterGUI
+from convert_xml_btd import XMLToBTDConverterGUI
+from convert_ctd_btd import CTDConverterGUI
+from get_sunrise_sunset import SunriseSunsetGUI
+from about_gaptools import AboutWidget
 
-
-class ParentWidget(QMainWindow):
-
-    # Dictionary mapping widget names to widget classes
+class ParentWidget(tk.Tk):
     widget_mapping = {
-        "Survey App Resource Locator": surveyApp,
-        "Convert CTD to BTD": CtdToBtdWidget,
-        # "Child Widget 2": CW2,
-        # "Child Widget 3": CW3,
+        "BT: Convert CTD Hex to BTD": CTDConverterGUI,
+        "BT: Convert XML to BTD": XMLToBTDConverterGUI,
+        "GPS: Convert TimeZero DB to GPS": TZDBConverterGUI,
+        "Sunrise/Sunset": SunriseSunsetGUI,
+        "About": AboutWidget
+
     }
 
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("GAP Toolbox")
-        self.central_widget = QWidget(self)
-        self.setCentralWidget(self.central_widget)
 
-        self.layout = QVBoxLayout()
-        self.title_label = QLabel("Tools:")
-        self.search_box = QLineEdit()
-        self.list_widget = QListWidget()
-        self.submit_button = QPushButton("Submit")
+        self.title("GAP Toolbox")
+        self.geometry("1000x700")
 
-        self.layout.addWidget(self.title_label)
-        self.layout.addWidget(self.search_box)
-        self.layout.addWidget(self.list_widget)
-        self.layout.addWidget(self.submit_button)
-        self.central_widget.setLayout(self.layout)
+        # 1. Create a PanedWindow for the split layout
+        self.paned_window = tk.PanedWindow(self, orient=tk.HORIZONTAL, sashwidth=4, bg="#cccccc")
+        self.paned_window.pack(fill="both", expand=True)
 
-        self.list_widget.itemDoubleClicked.connect(self.open_selected_widget)
-        self.submit_button.clicked.connect(self.open_selected_widget)
-        self.search_box.textChanged.connect(self.filter_widget_names)
+        # 2. Left Sidebar Frame
+        self.sidebar = tk.Frame(self.paned_window, width=250, padx=10, pady=10)
+        self.paned_window.add(self.sidebar)
 
-        # Original widget names
+        self.title_label = tk.Label(self.sidebar, text="Available Tools", font=("Arial", 11, "bold"))
+        self.title_label.pack(pady=(0, 10), anchor="w")
+
+        # Listbox for navigation
+        self.listbox = tk.Listbox(self.sidebar, font=("Arial", 10), exportselection=False)
+        self.listbox.pack(fill="both", expand=True)
+        self.listbox.bind('<<ListboxSelect>>', lambda e: self.open_selected_widget())
+
+        self.submit_button = tk.Button(self.sidebar, text="Open Tool", command=self.open_selected_widget)
+        self.submit_button.pack(fill="x", pady=(10, 0))
+
+        # 3. Right Workspace Frame
+        self.workspace = tk.Frame(self.paned_window, bg="white")
+        self.paned_window.add(self.workspace)
+
+        # Initialize listbox content
         self.original_widget_names = list(self.widget_mapping.keys())
-
-        # Populate the list widget with original widget names
-        self.list_widget.addItems(self.original_widget_names)
-
-    def filter_widget_names(self):
-        search_text = self.search_box.text().lower()
-        self.list_widget.clear()
-        filtered_widget_names = [
-            name for name in self.original_widget_names if search_text in name.lower()]
-        self.list_widget.addItems(filtered_widget_names)
+        for name in self.original_widget_names:
+            self.listbox.insert(tk.END, name)
 
     def open_selected_widget(self):
-        selected_item = self.list_widget.currentItem()
-        if selected_item is not None:
-            widget_name = selected_item.text()
-            if widget_name in self.widget_mapping:
-                widget_class = self.widget_mapping[widget_name]
-                child_widget = widget_class()
-                child_widget.setAttribute(
-                    Qt.WidgetAttribute.WA_DeleteOnClose, False)
-                child_widget.show()
-                self.child_widgets.append(child_widget)
+        """Clears the workspace and loads the new tool frame."""
+        selection = self.listbox.curselection()
+        if not selection:
+            return
 
-    def closeEvent(self, event):
-        for child_widget in self.child_widgets:
-            child_widget.close()
-        event.accept()
+        widget_name = self.listbox.get(selection[0])
+        widget_class = self.widget_mapping.get(widget_name)
 
+        # Clear existing tool from workspace
+        for widget in self.workspace.winfo_children():
+            widget.destroy()
+
+        if widget_class:
+            try:
+                # Instantiate tool inside the workspace frame
+                current_tool = widget_class(self.workspace)
+                current_tool.pack(fill="both", expand=True)
+            except Exception as e:
+                messagebox.showerror("Error", f"Could not load {widget_name}: {e}")
+        else:
+            # Placeholder for unlinked tools
+            lbl = tk.Label(self.workspace, text=f"{widget_name}\n(Not yet implemented)", 
+                           bg="white", font=("Arial", 14))
+            lbl.pack(expand=True)
 
 if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    parent_widget = ParentWidget()
-    parent_widget.child_widgets = []
-    parent_widget.show()
-    sys.exit(app.exec())
+    app = ParentWidget()
+    app.mainloop()
