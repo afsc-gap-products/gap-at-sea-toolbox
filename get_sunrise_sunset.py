@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import messagebox
-from datetime import datetime, timedelta
+from datetime import datetime
 import numpy as np
 import math
 

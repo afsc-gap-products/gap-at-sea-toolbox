@@ -4,7 +4,6 @@ import xml.etree.ElementTree as ET
 from datetime import datetime
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
-from zoneinfo import ZoneInfo
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
