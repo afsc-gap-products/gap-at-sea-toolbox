@@ -2,7 +2,6 @@ import os
 import re
 import math
 import pandas as pd
-import numpy as np
 from datetime import datetime, timedelta
 import tkinter as tk
 from tkinter import filedialog, messagebox
@@ -79,11 +78,12 @@ def process_ctd(hex_file, xml_file, btd_output_path, lat, vessel, cruise, haul, 
         temp = integer_to_temperature(t_int, **cal['temp'])
         press = integer_to_pressure(p_int, tv_int, **cal['press'])
         depth = calc_depth(lat, press)
-        timestamp = cast_time + timedelta(seconds=(i * 0.25) + (float(tz_offset) * 3600))
+        timestamp = cast_time + timedelta(seconds=(i * 0.25) + ((float(tz_offset)+8.0) * 3600))
         results.append({'time_elapsed': int(i * 0.25), 'temp': temp, 'depth': depth, 'dt': timestamp})
 
     df = pd.DataFrame(results).groupby('time_elapsed').agg({'temp':'mean', 'depth':'mean', 'dt':'first'}).reset_index()
-    
+
+    # Write BTD    
     btd_out = pd.DataFrame({
         'VESSEL': vessel, 'CRUISE': cruise, 'HAUL': haul, 'SERIAL': sn,
         'DATE_TIME': df['dt'].dt.strftime("%m/%d/%Y %H:%M:%S"),
