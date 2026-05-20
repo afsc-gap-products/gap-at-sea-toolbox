@@ -1,6 +1,5 @@
 import sqlite3
 import pandas as pd
-import numpy as np
 import math
 from datetime import datetime, timedelta
 import tkinter as tk
@@ -25,7 +24,6 @@ def dd_to_dmm(dd):
     return (degrees * 100 + minutes) * (1 if dd >= 0 else -1)
 
 def convert_tzdb_to_gps(path_tzdb, output_file, vessel, cruise, haul, start_dt, end_dt):
-    """Main processing function logic"""
     tz_origin = datetime(2000, 1, 1, tzinfo=zoneinfo.ZoneInfo("UTC"))
     start_offset = (start_dt.astimezone(zoneinfo.ZoneInfo("UTC")) - tz_origin).total_seconds()
     end_offset = (end_dt.astimezone(zoneinfo.ZoneInfo("UTC")) - tz_origin).total_seconds()
