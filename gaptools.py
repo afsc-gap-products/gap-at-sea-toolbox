@@ -5,6 +5,7 @@ from convert_xml_btd import XMLToBTDConverterGUI
 from convert_ctd_btd import CTDConverterGUI
 from get_sunrise_sunset import SunriseSunsetGUI
 from about_gaptools import AboutWidget
+from get_catch_haul_history import CatchHistoryGUI
 
 class ParentWidget(tk.Tk):
     widget_mapping = {
@@ -12,6 +13,7 @@ class ParentWidget(tk.Tk):
         "BT: Convert XML to BTD": XMLToBTDConverterGUI,
         "GPS: Convert TimeZero DB to GPS": TZDBConverterGUI,
         "Sunrise/Sunset": SunriseSunsetGUI,
+        "Catch/haul history": CatchHistoryGUI,
         "About": AboutWidget
     }
 
@@ -36,9 +38,6 @@ class ParentWidget(tk.Tk):
         self.listbox = tk.Listbox(self.sidebar, font=("Arial", 10), exportselection=False)
         self.listbox.pack(fill="both", expand=True)
         self.listbox.bind('<<ListboxSelect>>', lambda e: self.open_selected_widget())
-
-        self.submit_button = tk.Button(self.sidebar, text="Open Tool", command=self.open_selected_widget)
-        self.submit_button.pack(fill="x", pady=(10, 0))
 
         # 3. Right Workspace Frame
         self.workspace = tk.Frame(self.paned_window, bg="white")
