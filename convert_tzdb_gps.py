@@ -84,7 +84,7 @@ class TZDBConverterGUI(tk.Frame):
         self.lbl_desc.pack(pady=(5, 10))
 
         # 1. CRUISE METADATA FRAME
-        metadata_frame = tk.LabelFrame(main_container, text=" Cruise Metadata ", font=('Arial', 10, 'bold'), padx=15, pady=10)
+        metadata_frame = tk.LabelFrame(main_container, text=" Metadata Inputs ", font=('Arial', 10, 'bold'), padx=15, pady=10)
         metadata_frame.pack(fill="x", padx=10, pady=5)
 
         inner_id_frame = tk.Frame(metadata_frame)
@@ -135,6 +135,11 @@ class TZDBConverterGUI(tk.Frame):
         # 3. FILE SELECTION FRAME
         files_frame = tk.LabelFrame(main_container, text=" File Selection ", font=('Arial', 10, 'bold'), padx=15, pady=10)
         files_frame.pack(fill="x", padx=10, pady=5)
+
+        files_text = " Note: Default path to the TimeZero database is C:/ProgramData/TimeZero/DATA/OwnShipRecorder.tzdb "
+        self.files_text = tk.Label(files_frame, text=files_text, font=('Arial', 10, 'italic'), 
+                                 fg="#333333", wraplength=500, justify="center")
+        self.files_text.pack(pady=(5, 10))
 
         # Input File Layout
         tk.Label(files_frame, text="Input TimeZero Tracks Database (.tzdb):", font=('Arial', 9, 'bold')).pack(anchor="w")
