@@ -5,7 +5,7 @@ a = Analysis(
     ['gaptools.py'],
     pathex=[],
     binaries=[],
-    datas=[],
+    datas=[('assets/', 'assets/')],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -16,11 +16,23 @@ a = Analysis(
 )
 pyz = PYZ(a.pure)
 
+splash = Splash(
+    'assets/gaptools_splash.png', 
+    binaries=a.binaries,
+    datas=a.datas,
+    text_pos=None,
+    text_size=12,
+    text_color='#FFFFFF',
+    always_on_top=True,
+)
+
 exe = EXE(
     pyz,
     a.scripts,
     a.binaries,
     a.datas,
+    splash,
+    splash.binaries,
     [],
     name='gaptools_0_0_2',
     debug=False,
@@ -35,5 +47,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['gaptools_icon.ico'],
+    icon=['assets/gaptools_icon.ico'],
 )

@@ -1,3 +1,6 @@
+# Load imports and app
+import os
+import sys
 import tkinter as tk
 from tkinter import messagebox
 from convert_tzdb_gps import TZDBConverterGUI
@@ -6,6 +9,14 @@ from convert_ctd_btd import CTDConverterGUI
 from get_sunrise_sunset import SunriseSunsetGUI
 from about_gaptools import AboutWidget
 from get_catch_haul_history import CatchHistoryGUI
+
+def get_asset_path(relative_path):
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.dirname(os.path.abspath(__file__))
+        
+    return os.path.join(base_path, relative_path)
 
 class ParentWidget(tk.Tk):
     widget_mapping = {
@@ -22,6 +33,14 @@ class ParentWidget(tk.Tk):
 
         self.title("GAP Toolbox")
         self.geometry("1000x700")
+
+        # Load icon
+        try:
+            secure_ico_path = get_asset_path('assets/gaptools_icon.ico')
+            
+            self.iconbitmap(secure_ico_path)
+        except Exception as e:
+            messagebox.showerror("Icon Error", f"Native icon failed to load: {e}")
 
         # 1. Create a PanedWindow for the split layout
         self.paned_window = tk.PanedWindow(self, orient=tk.HORIZONTAL, sashwidth=4, bg="#cccccc")
@@ -72,6 +91,13 @@ class ParentWidget(tk.Tk):
             lbl = tk.Label(self.workspace, text=f"{widget_name}\n(Not yet implemented)", 
                            bg="white", font=("Arial", 14))
             lbl.pack(expand=True)
+
+# Close splash screen after GUI loads
+try:
+    import pyi_splash
+    pyi_splash.close()
+except ImportError:
+    pass
 
 if __name__ == '__main__':
     app = ParentWidget()
