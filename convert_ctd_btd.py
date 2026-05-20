@@ -90,6 +90,24 @@ def process_ctd(hex_file, xml_file, btd_output_path, lat, vessel, cruise, haul, 
         'TEMPERATURE': df['temp'].round(4), 'DEPTH': df['depth'].round(4)
     })
     btd_out.to_csv(btd_output_path, index=False)
+
+    # Write BTH
+    # Aggregate by second (mean)
+    df_agg = df.groupby('time_elapsed').agg({'temp':'mean', 'depth':'mean', 'dt':'first'}).reset_index()
+
+    bth_out = {
+        'VESSEL': [vessel], 'CRUISE': [cruise], 'HAUL': [haul], 
+        'MODEL': [model], 'VERSION': [version], 'SERIAL_NUMBER': [sn],
+        'HOST_TIME': [df_agg['dt'].iloc[-1].strftime("%m/%d/%Y %H:%M:%S")],
+        'LOGGER_TIME': [df_agg['dt'].iloc[0].strftime("%m/%d/%Y %H:%M:%S")],
+        'LOGGING_START': [df_agg['dt'].iloc[0].strftime("%m/%d/%Y %H:%M:%S")],
+        'LOGGING_END': [df_agg['dt'].iloc[-1].strftime("%m/%d/%Y %H:%M:%S")],
+        'SAMPLE_PERIOD': [1], 'NUMBER_CHANNELS': [2],
+        'NUMBER_SAMPLES': len(df),
+        'MODE': [2]
+    }
+    pd.DataFrame(bth_out).to_csv(bth_output_path, index=False)
+
     return btd_output_path, bth_output_path
 
 class CTDConverterGUI(tk.Frame):
