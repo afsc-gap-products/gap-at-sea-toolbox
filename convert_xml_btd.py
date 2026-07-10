@@ -44,10 +44,10 @@ class XMLToBTDConverterGUI(tk.Frame):  # Inherits from tk.Frame
         meta_frame = tk.LabelFrame(self, text=" Metadata Inputs ", font=('Arial', 10, 'bold'), padx=10, pady=10)
         meta_frame.pack(fill="x", padx=10, pady=5)
 
-        # Auto-import info notice text
+        # Updated user notice text
         auto_import_label = ttk.Label(
             meta_frame,
-            text="Vessel, cruise, and haul will be imported automatically from the selected file.",
+            text="Please enter the Vessel, Cruise, and Haul values below manually.",
             font=("TkDefaultFont", 10),
             wraplength=500,
             justify="left"
@@ -125,30 +125,7 @@ class XMLToBTDConverterGUI(tk.Frame):  # Inherits from tk.Frame
         )
         if file_path:
             self.xml_path.set(file_path)
-            self._autofill_metadata_from_xml(file_path)
-
-    def _autofill_metadata_from_xml(self, file_path):
-        try:
-            tree = ET.parse(file_path)
-            root = tree.getroot()
-            for log_entry in root.findall(".//DiagnosticsLogEntry"):
-                text = log_entry.text or ""
-                if "Meta Item (Vessel) updated to:" in text:
-                    vessel = text.split("to:")[-1].strip().split("|")[0].strip()
-                    if "Northwest Explorer" in vessel:
-                        vessel = "134"
-                    self.vessel_entry.delete(0, tk.END)
-                    self.vessel_entry.insert(0, vessel)
-                elif "Meta Item (Cruise) updated to:" in text:
-                    cruise = text.split("to:")[-1].strip()
-                    self.cruise_entry.delete(0, tk.END)
-                    self.cruise_entry.insert(0, cruise)
-                elif "Meta Item (Haul) updated to:" in text:
-                    haul = text.split("to:")[-1].strip()
-                    self.haul_entry.delete(0, tk.END)
-                    self.haul_entry.insert(0, haul)
-        except Exception:
-            pass
+            # The auto-fill function call has been removed from here
 
     def _process_xml(self):
         path = self.xml_path.get()

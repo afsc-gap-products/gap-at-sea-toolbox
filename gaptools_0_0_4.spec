@@ -34,7 +34,7 @@ exe = EXE(
     splash,
     splash.binaries,
     [],
-    name='gaptools_0_0_3',
+    name='gaptools_0_0_4',
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
