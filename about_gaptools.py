@@ -45,8 +45,8 @@ class AboutWidget(tk.Frame):
         info_frame.pack(fill="x", padx=10, pady=15)
 
         details = [
-            ("Version:", "0.0.4"),
-            ("Last Updated:", "July 10, 2026"),
+            ("Version:", "0.0.6"),
+            ("Last Updated:", "July 16, 2026"),
             ("Primary Contact:", "Sean Rohan"),
             ("Email Support:", "sean.rohan@noaa.gov")
         ]

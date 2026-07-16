@@ -44,7 +44,6 @@ class XMLToBTDConverterGUI(tk.Frame):  # Inherits from tk.Frame
         meta_frame = tk.LabelFrame(self, text=" Metadata Inputs ", font=('Arial', 10, 'bold'), padx=10, pady=10)
         meta_frame.pack(fill="x", padx=10, pady=5)
 
-        # Updated user notice text
         auto_import_label = ttk.Label(
             meta_frame,
             text="Please enter the Vessel, Cruise, and Haul values below manually.",
@@ -107,6 +106,15 @@ class XMLToBTDConverterGUI(tk.Frame):  # Inherits from tk.Frame
         self.max_temp_entry.insert(0, "24")
         self.max_temp_entry.grid(row=2, column=3, padx=5, pady=2, sticky="w")
 
+        # Row 3: Offset Filling Option (Checkbox)
+        self.fill_offsets_var = tk.BooleanVar(value=False)
+        self.fill_offsets_chk = ttk.Checkbutton(
+            filter_frame, 
+            text="Interpolate 5s offsets (forward-fill if within 10s & drop incomplete rows)",
+            variable=self.fill_offsets_var
+        )
+        self.fill_offsets_chk.grid(row=3, column=0, columnspan=4, sticky="w", pady=(10, 0))
+
         # Action Button Frame
         btn_frame = ttk.Frame(self, padding=2)
         btn_frame.pack(fill="x", padx=10, pady=2)
@@ -125,7 +133,6 @@ class XMLToBTDConverterGUI(tk.Frame):  # Inherits from tk.Frame
         )
         if file_path:
             self.xml_path.set(file_path)
-            # The auto-fill function call has been removed from here
 
     def _process_xml(self):
         path = self.xml_path.get()
@@ -205,7 +212,29 @@ class XMLToBTDConverterGUI(tk.Frame):  # Inherits from tk.Frame
         if "TEMPERATURE" in self.df_data.columns:
             self.df_data.loc[(self.df_data["TEMPERATURE"] < min_t) | (self.df_data["TEMPERATURE"] > max_t), "TEMPERATURE"] = np.nan
 
-        self.df_data = self.df_data.dropna(subset=["DEPTH", "TEMPERATURE"], how="all").reset_index(drop=True)
+        # Conditional interpolation & cleaning
+        if self.fill_offsets_var.get():
+            # Apply 10-second conditional forward fill
+            for col in ["DEPTH", "TEMPERATURE"]:
+                if col in self.df_data.columns:
+                    valid_times = self.df_data["DATE_TIME"].where(self.df_data[col].notna())
+                    filled_times = valid_times.ffill()
+                    time_diff = (self.df_data["DATE_TIME"] - filled_times).dt.total_seconds()
+                    filled_values = self.df_data[col].ffill()
+                    
+                    # Fill missing values only where time delta is <= 10 seconds
+                    self.df_data[col] = self.df_data[col].fillna(filled_values.where(time_diff <= 10))
+            
+            # Remove all rows where temperature OR depth are still missing
+            self.df_data = self.df_data.dropna(subset=["DEPTH", "TEMPERATURE"], how="any").reset_index(drop=True)
+        else:
+            # Default behavior: remove rows missing BOTH values
+            self.df_data = self.df_data.dropna(subset=["DEPTH", "TEMPERATURE"], how="all").reset_index(drop=True)
+
+        if self.df_data.empty:
+            messagebox.showwarning("Warning", "No valid records remained after data interpolation/cleaning.")
+            return
+
         self._launch_interactive_plot()
 
     def _launch_interactive_plot(self):
@@ -300,6 +329,13 @@ class XMLToBTDConverterGUI(tk.Frame):  # Inherits from tk.Frame
             messagebox.showwarning("Export Cancelled", "No valid data remaining to output.")
             return
 
+        # NEW: Remove any lines that are missing either temperature or depth values after user editing
+        self.cleaned_df = self.cleaned_df.dropna(subset=["TEMPERATURE", "DEPTH"], how="any").reset_index(drop=True)
+
+        if self.cleaned_df.empty:
+            messagebox.showwarning("Export Cancelled", "No valid data remaining to output after removing incomplete lines.")
+            return
+
         vessel = self.vessel_entry.get()
         cruise = self.cruise_entry.get()
         haul = self.haul_entry.get()
@@ -391,7 +427,7 @@ class XMLToBTDConverterGUI(tk.Frame):  # Inherits from tk.Frame
 if __name__ == "__main__":
     root = tk.Tk()
     root.title("Debug Mode Root Container")
-    root.geometry("540x650")
+    root.geometry("540x680")  
     app = XMLToBTDConverterGUI(root)
     app.pack(fill="both", expand=True)
     root.mainloop()

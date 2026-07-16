@@ -1,20 +1,44 @@
 import sqlite3
 import pandas as pd
 import math
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog, messagebox, ttk
 from tkcalendar import DateEntry
 import zoneinfo
 
-def transform_3857_to_4326(x_3857, y_3857):
-    """Converts EPSG:3857 (Pseudo-Mercator) to EPSG:4326 (WGS84)"""
-    x_const = 20037508.34
-    lon = (x_3857 * 180.0) / x_const
-    lat_val = y_3857 / (x_const / 180.0)
-    exp_const = (math.pi / 180.0) * lat_val
-    lat = math.atan(math.exp(exp_const)) / (math.pi / 360.0) - 90.0
-    return lon, lat
+def epsg3395_to_wgs84(x, y):
+    # WGS 84 Constants
+    a = 6378137.0
+    f = 1 / 298.257223563
+    e = math.sqrt(2 * f - f**2)
+    
+    # 1. Calculate Longitude
+    lon_rad = x / a
+    lon_deg = math.degrees(lon_rad)
+    
+    # 2. Calculate Latitude (Iterative)
+    t = math.exp(-y / a)
+    
+    # Initial estimate
+    phi = math.pi / 2 - 2 * math.atan(t)
+    
+    # Iteration loop
+    for _ in range(10):
+        sin_phi = math.sin(phi)
+        ecc_factor = ((1 - e * sin_phi) / (1 + e * sin_phi)) ** (e / 2)
+        phi_new = math.pi / 2 - 2 * math.atan(t * ecc_factor)
+        
+        # Check for convergence
+        if abs(phi_new - phi) < 1e-12:
+            phi = phi_new
+            break
+        phi = phi_new
+        
+    lat_deg = math.degrees(phi)
+    
+    return lon_deg, lat_deg
+
 
 def dd_to_dmm(dd):
     """Converts decimal degrees to degree decimal minutes (DMM)"""
@@ -23,7 +47,7 @@ def dd_to_dmm(dd):
     minutes = (abs_dd % 1) * 60
     return (degrees * 100 + minutes) * (1 if dd >= 0 else -1)
 
-def convert_tzdb_to_gps(path_tzdb, output_file, vessel, cruise, haul, start_dt, end_dt):
+def convert_tzdb_to_gps(path_tzdb, output_file, vessel, cruise, haul, start_dt, end_dt, output_tz):
     tz_origin = datetime(2000, 1, 1, tzinfo=zoneinfo.ZoneInfo("UTC"))
     start_offset = (start_dt.astimezone(zoneinfo.ZoneInfo("UTC")) - tz_origin).total_seconds()
     end_offset = (end_dt.astimezone(zoneinfo.ZoneInfo("UTC")) - tz_origin).total_seconds()
@@ -46,13 +70,16 @@ def convert_tzdb_to_gps(path_tzdb, output_file, vessel, cruise, haul, start_dt, 
     df['x'] = df['x'] / 100.0
     df['y'] = df['y'] / 100.0
 
-    coords = df.apply(lambda row: transform_3857_to_4326(row['x'], row['y']), axis=1)
+    coords = df.apply(lambda row: epsg3395_to_wgs84(row['x'], row['y']), axis=1)
     df['X_wgs'], df['Y_wgs'] = zip(*coords)
 
     df['X_final'] = df['X_wgs'].apply(dd_to_dmm).round(4)
     df['Y_final'] = df['Y_wgs'].apply(dd_to_dmm).round(4)
 
-    df['Date_str'] = df['date'].apply(lambda d: (tz_origin + timedelta(seconds=d)).strftime("%m/%d/%y %H:%M:%S"))
+    # Convert UTC timestamps into the user's selected output timezone
+    df['Date_str'] = df['date'].apply(
+        lambda d: (tz_origin + timedelta(seconds=d)).astimezone(output_tz).strftime("%m/%d/%y %H:%M:%S")
+    )
 
     df['vessel'] = vessel
     df['cruise'] = cruise
@@ -130,13 +157,27 @@ class TZDBConverterGUI(tk.Frame):
         self.time_end.insert(0, "14:33:15")
         self.time_end.pack(pady=2)
 
-        # 3. FILE SELECTION FRAME
+        # 3. OUTPUT SETTINGS FRAME (New Section)
+        output_settings_frame = tk.LabelFrame(main_container, text=" Output Settings ", font=('Arial', 10, 'bold'), padx=15, pady=10)
+        output_settings_frame.pack(fill="x", padx=10, pady=5)
+
+        tk.Label(output_settings_frame, text="Output Timezone:", font=('Arial', 9, 'bold')).pack(side="left", padx=(5, 10))
+        self.cb_timezone = ttk.Combobox(output_settings_frame, width=25)
+        self.cb_timezone['values'] = [
+            "UTC",
+            "America/Los_Angeles",
+            "America/Anchorage"
+        ]
+        self.cb_timezone.set("America/Anchorage")  # Default timezone is Alaska Time
+        self.cb_timezone.pack(side="left", padx=5)
+
+        # 4. FILE SELECTION FRAME
         files_frame = tk.LabelFrame(main_container, text=" File Selection ", font=('Arial', 10, 'bold'), padx=15, pady=10)
         files_frame.pack(fill="x", padx=10, pady=5)
 
         files_text = " Note: Default path to the TimeZero database is C:/ProgramData/TimeZero/DATA/OwnShipRecorder.tzdb "
         self.files_text = tk.Label(files_frame, text=files_text, font=('Arial', 10, 'italic'), 
-                                 fg="#333333", wraplength=500, justify="center")
+                                  fg="#333333", wraplength=500, justify="center")
         self.files_text.pack(pady=(5, 10))
 
         # Input File Layout
@@ -155,7 +196,7 @@ class TZDBConverterGUI(tk.Frame):
         tk.Entry(out_frame, textvariable=self.path_out).pack(side="left", fill="x", expand=True, padx=5)
         tk.Button(out_frame, text="Browse...", width=10, command=self.browse_output).pack(side="right")
 
-        # 4. ACTION BUTTONS FRAME
+        # 5. ACTION BUTTONS FRAME
         button_frame = tk.Frame(main_container)
         button_frame.pack(pady=15)
 
@@ -188,6 +229,26 @@ class TZDBConverterGUI(tk.Frame):
             start_dt = datetime.strptime(s_dt_str, "%Y-%m-%d %H:%M:%S").replace(tzinfo=tz_ak)
             end_dt = datetime.strptime(e_dt_str, "%Y-%m-%d %H:%M:%S").replace(tzinfo=tz_ak)
 
+            # --- Timezone Parser ---
+            selected_tz_str = self.cb_timezone.get().strip()
+            if selected_tz_str.startswith("UTC"):
+                try:
+                    # Extracts 'UTC-8' from 'UTC-8 (PST)' or 'UTC' from 'UTC'
+                    part = selected_tz_str.split()[0]
+                    if part == "UTC":
+                        output_tz = timezone.utc
+                    else:
+                        offset_str = part.replace("UTC", "")
+                        offset_hours = int(offset_str)
+                        output_tz = timezone(timedelta(hours=offset_hours))
+                except Exception:
+                    raise ValueError(f"Could not parse UTC offset from '{selected_tz_str}'. Use standard formats like 'UTC-8' or 'America/Los_Angeles'.")
+            else:
+                try:
+                    output_tz = zoneinfo.ZoneInfo(selected_tz_str)
+                except Exception:
+                    raise ValueError(f"Invalid timezone: '{selected_tz_str}'. Please enter a valid timezone name.")
+
             count = convert_tzdb_to_gps(
                 self.path_in.get(),
                 self.path_out.get(),
@@ -195,7 +256,8 @@ class TZDBConverterGUI(tk.Frame):
                 self.ent_cruise.get(),
                 self.ent_haul.get(),
                 start_dt,
-                end_dt
+                end_dt,
+                output_tz  # Passed output timezone object
             )
             
             messagebox.showinfo("Success", f"Done! {count} records written.")
@@ -206,7 +268,7 @@ class TZDBConverterGUI(tk.Frame):
 if __name__ == "__main__":
     root = tk.Tk()
     root.title("Data Engine Workspace")
-    root.geometry("600x700")
+    root.geometry("600x750")  # Expanded height slightly to accommodate the new frame smoothly
     app = TZDBConverterGUI(root)
     app.pack(fill="both", expand=True)
     root.mainloop()
