@@ -3,29 +3,34 @@ import os
 import sys
 import tkinter as tk
 from tkinter import messagebox
+
+from about_gaptools import AboutWidget
+from calculate_winch_scope import ScopeCalculatorGUI
+from convert_ctd_btd import CTDConverterGUI
 from convert_tzdb_gps import TZDBConverterGUI
 from convert_xml_btd import XMLToBTDConverterGUI
-from convert_ctd_btd import CTDConverterGUI
-from get_sunrise_sunset import SunriseSunsetGUI
-from about_gaptools import AboutWidget
 from get_catch_haul_history import CatchHistoryGUI
+from get_sunrise_sunset import SunriseSunsetGUI
+
 
 def get_asset_path(relative_path):
     try:
         base_path = sys._MEIPASS
     except Exception:
         base_path = os.path.dirname(os.path.abspath(__file__))
-        
+
     return os.path.join(base_path, relative_path)
+
 
 class ParentWidget(tk.Tk):
     widget_mapping = {
         "BT: Convert CTD Hex to BTD": CTDConverterGUI,
         "BT: Convert XML to BTD": XMLToBTDConverterGUI,
+        "BT: Calculate Winch Scope": ScopeCalculatorGUI,
         "GPS: Convert TimeZero DB to GPS": TZDBConverterGUI,
         "Sunrise/Sunset": SunriseSunsetGUI,
         "Catch/haul history": CatchHistoryGUI,
-        "About": AboutWidget
+        "About": AboutWidget,
     }
 
     def __init__(self):
@@ -36,27 +41,35 @@ class ParentWidget(tk.Tk):
 
         # Load icon
         try:
-            secure_ico_path = get_asset_path('assets/gaptools_icon.ico')
-            
+            secure_ico_path = get_asset_path("assets/gaptools_icon.ico")
+
             self.iconbitmap(secure_ico_path)
         except Exception as e:
             messagebox.showerror("Icon Error", f"Native icon failed to load: {e}")
 
         # 1. Create a PanedWindow for the split layout
-        self.paned_window = tk.PanedWindow(self, orient=tk.HORIZONTAL, sashwidth=4, bg="#cccccc")
+        self.paned_window = tk.PanedWindow(
+            self, orient=tk.HORIZONTAL, sashwidth=4, bg="#cccccc"
+        )
         self.paned_window.pack(fill="both", expand=True)
 
         # 2. Left Sidebar Frame
         self.sidebar = tk.Frame(self.paned_window, width=250, padx=10, pady=10)
         self.paned_window.add(self.sidebar)
 
-        self.title_label = tk.Label(self.sidebar, text="Tools:", font=("Arial", 11, "bold"))
+        self.title_label = tk.Label(
+            self.sidebar, text="Tools:", font=("Arial", 11, "bold")
+        )
         self.title_label.pack(pady=(0, 10), anchor="w")
 
         # Listbox for navigation
-        self.listbox = tk.Listbox(self.sidebar, font=("Arial", 10), exportselection=False)
+        self.listbox = tk.Listbox(
+            self.sidebar, font=("Arial", 10), exportselection=False
+        )
         self.listbox.pack(fill="both", expand=True)
-        self.listbox.bind('<<ListboxSelect>>', lambda e: self.open_selected_widget())
+        self.listbox.bind(
+            "<<ListboxSelect>>", lambda e: self.open_selected_widget()
+        )
 
         # 3. Right Workspace Frame
         self.workspace = tk.Frame(self.paned_window, bg="white")
@@ -86,19 +99,27 @@ class ParentWidget(tk.Tk):
                 current_tool = widget_class(self.workspace)
                 current_tool.pack(fill="both", expand=True)
             except Exception as e:
-                messagebox.showerror("Error", f"Could not load {widget_name}: {e}")
+                messagebox.showerror(
+                    "Error", f"Could not load {widget_name}: {e}"
+                )
         else:
-            lbl = tk.Label(self.workspace, text=f"{widget_name}\n(Not yet implemented)", 
-                           bg="white", font=("Arial", 14))
+            lbl = tk.Label(
+                self.workspace,
+                text=f"{widget_name}\n(Not yet implemented)",
+                bg="white",
+                font=("Arial", 14),
+            )
             lbl.pack(expand=True)
+
 
 # Close splash screen after GUI loads
 try:
     import pyi_splash
+
     pyi_splash.close()
 except ImportError:
     pass
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app = ParentWidget()
     app.mainloop()
