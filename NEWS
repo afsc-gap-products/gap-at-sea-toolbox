@@ -1,0 +1,57 @@
+0.0.7-beta (August 8, 2026)
+----------------------------------------------------------------
+
+NEW FUNCTIONALITY
+
+- Add scope calculator for setting scope in 1-fathom increments
+  based on physical markings and wire counter measurements.
+
+
+0.0.6-beta (July 16, 2026)
+----------------------------------------------------------------
+
+BUG FIX
+
+- convert_xml_btd fills missing temperature/height to work 
+  around automatic zero-filling of NAs by Poseidon.
+
+0.0.5-beta (July 16, 2026)
+----------------------------------------------------------------
+
+BUG FIX
+
+- Fix convert_tzdb_gps coordinate conversion handling.
+
+
+0.0.4-beta (July 10, 2026)
+----------------------------------------------------------------
+
+FUNCTIONALITY CHANGE
+
+- convert_xml_btd no longer reads cruise and haul from SCS xml
+  files to provide greater flexibility in data handling.
+
+
+0.0.3-beta (May 20, 2026)
+----------------------------------------------------------------
+
+BUG FIX
+
+- Fix time and coordinate handling in convert_tzdb_gps.
+
+
+0.0.2-alpha (May 19, 2026)
+----------------------------------------------------------------
+
+NEW FEATURES
+
+- Port CTD to BTD, XML to BTD, TimeZero to GPS, 
+  sunrise/sunset calculator, and haul data catch history
+  retrieval survey utility functions from R to Python.
+
+
+gap-at-sea-toolbox 0.0.1-alpha (May 23, 2023)
+----------------------------------------------------------------
+
+Initial commit for a demonstration of a Python-based survey 
+utility.
